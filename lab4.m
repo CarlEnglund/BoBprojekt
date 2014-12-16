@@ -1,35 +1,43 @@
 clear
-picture = im2double(imread('00106v.jpg'));
 
+tic
+
+file = '00106a.tif';
+
+fileending = strsplit(file,'.');
+tic
+picture = im2double(imread(file));
+toc
 [height width] = size(picture);
+
+if(strcmp(fileending(2), 'tif'))
+    threshold = 100;
+    percent = 0.1;
+else
+    threshold = 20;
+    percent = 1;
+end
 
 height = round(height/3);
 
-B = picture((height*0)+1:height, :);
-G = picture(height*1:(height*2), :);
-R = picture(height*2:(height*3), :);
+B = picture(1:height, :);
+G = picture(height*1+1:(height*2), :);
+R = picture(height*2:(height*3)-1, :);
 
-BW = corner(B, 'Harris', 4);
-GW = corner(G, 'Harris', 4);
-RW = corner(R, 'Harris', 4);
+Btest = imcrop(B, [round(width/2) round(width/2) round((width/2)*percent) round((width/2)*percent)]);
+Gtest = imcrop(G, [round(width/2) round(width/2) round((width/2)*percent) round((width/2)*percent)]);
+Rtest = imcrop(R, [round(width/2) round(width/2) round((width/2)*percent) round((width/2)*percent)]);
 
-GX = [BW(1,1), BW(2,1), BW(3,1), BW(4,1)];
-GY = [BW(1,2), BW(2,2), BW(3,2), BW(4,2)];
+Btest = edge(Btest, 'canny');
+Gtest = edge(Gtest, 'canny');
+Rtest = edge(Rtest, 'canny');
 
-HX = [GW(1,1), GW(2,1), GW(3,1), GW(4,1)];
-HY = [GW(1,2), GW(2,2), GW(3,2), GW(4,2)];
+displacementB = shifting(Btest, Gtest, threshold);
+displacementR = shifting(Rtest, Gtest, threshold);
 
-GC = [GX; GY; 1 1 1 1;]';
-HC = [HX; HY; 1 1 1 1;]';
+RtoG = circshift(R, displacementR);
+BtoG = circshift(B, displacementB);
+   
+colorImage = cat(3,  RtoG, G, BtoG);
 
-Transform = mldivide(HC, C);
-Transform(1,3) = 0;
-Transform(2,3) = 0;
-Transform(3,3) = 1;
-C = affine2d(Transform);
-Rcb = imref2d(size(G))
-
-transFormedImage = imwarp(G, C, 'OutputView', Rcb);
-
-imshowpair(G, transFormedImage);
-
+toc
