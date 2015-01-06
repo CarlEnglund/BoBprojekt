@@ -1,29 +1,37 @@
 function [colorImage2] = matching(colorImage)
 
-imshow(colorImage);
-[posX posY] = ginput(1);
-posX = round(posX);
-posY = round(posY);
-R_intensity = colorImage(posX,posY,1);
-G_intensity = colorImage(posX,posY,2);
-B_intensity = colorImage(posX,posY,3);
+returnImage = colorImage;
 
-minVal = R_intensity;
+R = colorImage(:,:,1);
+G = colorImage(:,:,2);
+B = colorImage(:,:,3);
 
-if G_intensity < minVal
-    minVal = G_intensity;
-end
+meanR = mean(mean(R));
+meanG = mean(mean(G));
+meanB = mean(mean(B));
 
-if B_intensity < minVal
-    minVal = B_intensity;
-end
+scaleR = meanG/meanR;
+scaleB = meanG/meanB;
 
-R_intensity = R_intensity / minVal;
-G_intensity = G_intensity / minVal;
-B_intensity = B_intensity / minVal;
+colorImage2(:,:,1) = returnImage(:,:,1)*scaleR;
+colorImage2(:,:,2) = returnImage(:,:,2);
+colorImage2(:,:,3) = returnImage(:,:,3)*scaleB;
 
-colorImage2(:,:,1) = colorImage(:,:,1)*R_intensity;
-colorImage2(:,:,2) = colorImage(:,:,2)*G_intensity;
-colorImage2(:,:,3) = colorImage(:,:,3)*B_intensity;
+srgb2lab = makecform('srgb2lab');
+lab2srgb = makecform('lab2srgb');
+
+
+contrast_image = applycform(colorImage2, srgb2lab); % convert to L*a*b*
+% the values of luminosity can span a range from 0 to 100; scale them
+% to [0 1] range (appropriate for MATLAB(R) intensity images of class double)
+% before applying the three contrast enhancement techniques
+max_luminosity = 100;
+L = contrast_image(:,:,1)/max_luminosity;
+
+% replace the luminosity layer with the processed data and then convert
+% the image back to the RGB colorspace
+
+contrast_image(:,:,1) = imadjust(L)*max_luminosity;
+colorImage2 = applycform(contrast_image, lab2srgb);
 
 end

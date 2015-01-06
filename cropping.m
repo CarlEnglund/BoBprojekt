@@ -1,14 +1,19 @@
 function [croppedImage] = cropping(unCroppedImage)
 
-[height width] = size(unCroppedImage);
-width = width/3
+[height width d] = size(unCroppedImage);
+
 edgeG = edge(rgb2gray(unCroppedImage),'canny', 0.01);
+
 ave_x_G = sum(edgeG,1)/height; 
+minX = round(find(ave_x_G(1:end*0.1)>mean(ave_x_G), 1, 'last'));
+maxX = round(find(ave_x_G(0.9*end:end)>mean(ave_x_G), 1, 'first')+0.9*width);
 
-min = find(ave_x_G(1:width/10)>mean(ave_x_G)*1.5, 1, 'last')
-max = find(ave_x_G((width*0.8):width)>mean(ave_x_G)*1.5, 1, 'first')
-max = max+width*0.8;
 
-croppedImage  = imcrop(unCroppedImage, [min min max-min max-min]);
+ave_x_R = sum(edgeG,2)/width; 
+minY = round(find(ave_x_R(1:end*0.1)>mean(ave_x_R)*1.5, 1, 'last'));
+maxY = round(find(ave_x_R(0.9*end:end)>mean(ave_x_R), 1, 'first')+0.9*width);
+
+
+croppedImage = imcrop(unCroppedImage, [minX minY maxX-minX maxY-minY]);
 
 end
