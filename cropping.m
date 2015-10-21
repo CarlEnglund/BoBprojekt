@@ -1,19 +1,28 @@
+%Carl Englund
+%caren083 MT3A
+%caren083@student.liu.se
+
 function [croppedImage] = cropping(unCroppedImage)
+
+%Check the beginning of the image for cropping in x and y. Then use the
+%same distance on the other side.. Not the smartest or best of crops
+%im afraid
 
 [height width d] = size(unCroppedImage);
 
-edgeG = edge(rgb2gray(unCroppedImage),'canny', 0.01);
+edgeImage = edge((rgb2gray(unCroppedImage)),'canny', 0.01);
 
-ave_x_G = sum(edgeG,1)/height; 
-minX = round(find(ave_x_G(1:end*0.1)>mean(ave_x_G), 1, 'last'));
-maxX = round(find(ave_x_G(0.9*end:end)>mean(ave_x_G), 1, 'first')+0.9*width);
+ave_x = sum(edgeImage,1)/width; 
+ave_y = sum(edgeImage,2)/height; 
+xCrop = round(find(ave_x(1:end*0.1)>mean(ave_x), 5, 'last'));
+yCrop = round(find(ave_y(1:end*0.1)>mean(ave_y), 5, 'last'));
+   
+xCrop = max(xCrop);
+yCrop = max(yCrop);
 
+%Some extra padding since the cropping seems to work better with it.
+padding = ceil(height/100);
 
-ave_x_R = sum(edgeG,2)/width; 
-minY = round(find(ave_x_R(1:end*0.1)>mean(ave_x_R)*1.5, 1, 'last'));
-maxY = round(find(ave_x_R(0.9*end:end)>mean(ave_x_R), 1, 'first')+0.9*width);
-
-
-croppedImage = imcrop(unCroppedImage, [minX minY maxX-minX maxY-minY]);
+croppedImage = imcrop(unCroppedImage, [xCrop yCrop+padding width-2*xCrop height-2*yCrop-padding]);
 
 end

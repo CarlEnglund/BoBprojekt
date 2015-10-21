@@ -1,3 +1,10 @@
+%Carl Englund
+%caren083 MT3A
+%caren083@student.liu.se
+
+%Performed the Sum of Squared Differences method on the images. Try to find
+%the best fitting shift by doing it several times and comparing the results
+%against each other.
 function [displacement] = shifting(imageToBeMapped, mappingImage)
     SSDtracker = inf;
 
